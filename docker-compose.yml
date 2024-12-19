@@ -1,0 +1,60 @@
+services:
+  jobmanager:
+    image: flink:latest
+    container_name: jobmanager
+    hostname: jobmanager
+    ports:
+      - "8082:8081" # Web UI
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - jobmanager.memory.process.size=2048m  # JobManager 总内存
+    command: jobmanager
+    volumes:
+      - /home/flink-jobs:/flink-jobs
+
+  taskmanager-1:
+    image: flink:latest
+    container_name: taskmanager-1
+    hostname: taskmanager-1
+    depends_on:
+      - jobmanager
+    deploy:
+      resources:
+        limits:
+          cpus: "8"    # 分配8核CPU
+          memory: 10g  # 分配10GB内存
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=8       # 8个Slot，充分利用8核CPU
+      - taskmanager.memory.process.size=10240m    # TaskManager 总内存
+      - taskmanager.memory.task.heap.size=8192m   # 堆内存
+      - taskmanager.memory.managed.size=2048m     # 状态管理内存
+      - heartbeat.timeout=300000                  # 心跳超时
+      - heartbeat.interval=30000                  # 心跳间隔
+    command: taskmanager
+    volumes:
+      - /home/flink-jobs:/flink-jobs
+
+  taskmanager-2:
+    image: flink:latest
+    container_name: taskmanager-2
+    hostname: taskmanager-2
+    depends_on:
+      - jobmanager
+    deploy:
+      resources:
+        limits:
+          cpus: "8"    # 分配8核CPU
+          memory: 10g  # 分配10GB内存
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=8       # 8个Slot，充分利用8核CPU
+      - taskmanager.memory.process.size=10240m    # TaskManager 总内存
+      - taskmanager.memory.task.heap.size=8192m   # 堆内存
+      - taskmanager.memory.managed.size=2048m     # 状态管理内存
+      - heartbeat.timeout=300000                  # 心跳超时
+      - heartbeat.interval=30000                  # 心跳间隔
+    command: taskmanager
+    volumes:
+      - /home/flink-jobs:/flink-jobs
+
